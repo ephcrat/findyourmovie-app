@@ -58,14 +58,11 @@ export default function Movie() {
   const moviesFavourites = useSelector((state) => state.moviesFavourites);
 
   React.useEffect(() => {
+    dispatch(getMovieDetail(id));
     return () => {
       dispatch({ type: GET_MOVIE_DETAIL, payload: undefined });
     };
-  }, [dispatch]); //this useEffect will set the movieDetail state to undefined after the component is unmounted so there's nothing on the body before the loading process starts
-
-  React.useEffect(() => {
-    dispatch(getMovieDetail(id));
-  }, [dispatch, id]);
+  }, [dispatch, id]); // the returned dispatch will set the movieDetail state to undefined after the component is unmounted so there's nothing on the body before the loading process starts
 
   if (loading || !movieDetail) {
     return (
