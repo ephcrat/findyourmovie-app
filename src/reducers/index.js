@@ -32,7 +32,10 @@ export default function rootReducer(state = initialState, { type, payload }) {
     case GET_MOVIE_DETAIL:
       return { ...state, movieDetail: payload };
     case LOADING:
-      return { ...state, loading: payload };
+      return {
+        ...state,
+        loading: payload,
+      };
 
     default:
       return state;

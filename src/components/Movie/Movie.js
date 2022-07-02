@@ -5,6 +5,7 @@ import {
   getMovieDetail,
   addMovieFavorite,
   RemoveMovieFavorite,
+  GET_MOVIE_DETAIL,
 } from "../../actions/index";
 
 import "./Movie.css";
@@ -55,16 +56,24 @@ export default function Movie() {
   const movieDetail = useSelector((state) => state.movieDetail);
   const loading = useSelector((state) => state.loading);
   const moviesFavourites = useSelector((state) => state.moviesFavourites);
+
+  React.useEffect(() => {
+    return () => {
+      dispatch({ type: GET_MOVIE_DETAIL, payload: undefined });
+    };
+  }, [dispatch]); //this useEffect will set the movieDetail state to undefined after the component is unmounted so there's nothing on the body before the loading process starts
+
   React.useEffect(() => {
     dispatch(getMovieDetail(id));
   }, [dispatch, id]);
 
-  if (loading || !movieDetail)
+  if (loading || !movieDetail) {
     return (
       <div>
         <h1 style={{ textAlign: "center" }}>Loading...</h1>
       </div>
     );
+  }
   return (
     <div className="movie-detail">
       <div style={{ textAlign: "center" }}>
