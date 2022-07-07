@@ -1,10 +1,4 @@
-import {
-  ADD_MOVIE_FAVORITE,
-  REMOVE_MOVIE_FAVORITE,
-  GET_MOVIES,
-  GET_MOVIE_DETAIL,
-  LOADING,
-} from "../actions";
+import { ADD_MOVIE_FAVORITE, REMOVE_MOVIE_FAVORITE } from "../actions";
 
 const initialState = {
   moviesFavourites: [],
@@ -27,16 +21,6 @@ export default function rootReducer(state = initialState, { type, payload }) {
           (m) => m.imdbID !== payload.imdbID
         ),
       };
-    case GET_MOVIES:
-      return { ...state, moviesLoaded: payload.Search };
-    case GET_MOVIE_DETAIL:
-      return { ...state, movieDetail: payload };
-    case LOADING:
-      return {
-        ...state,
-        loading: payload,
-      };
-
     default:
       return state;
   }

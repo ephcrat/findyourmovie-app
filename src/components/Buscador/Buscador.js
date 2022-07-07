@@ -1,105 +1,76 @@
 import React, { useState } from "react";
 import { connect, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams, createSearchParams } from "react-router-dom";
 import "./Buscador.css";
-import {
-  getMovies,
-  addMovieFavorite,
-  RemoveMovieFavorite,
-} from "../../actions";
-// export class Buscador extends Component {
-//   constructor(props) {
-//     super(props);
-//     this.state = {
-//       title: "",
-//     };
-//   }
-//   handleChange(event) {
-//     this.setState({ title: event.target.value });
-//   }
-//   handleSubmit(event) {
-//     event.preventDefault();
-//     this.props.getMovies(this.state.title);
-//     this.setState({ title: "" });
-//   }
+import { addMovieFavorite, RemoveMovieFavorite } from "../../actions";
+import { useQuery } from "react-query";
 
-//   addFavorite(movie) {
-//     const found = this.props.moviesFavourites.find(
-//       (m) => m.id === movie.imdbID
-//     );
-//     if (!found)
-//       return this.props.addMovieFavorite({
-//         title: movie.Title,
-//         id: movie.imdbID,
-//         isFaved: true,
-//       });
-//   }
+export function Buscador({ addMovieFavorite, RemoveMovieFavorite }) {
+  const [searchParams, setSearchParams] = useSearchParams("");
+  const [page, setPage] = useState(1);
+  const search = searchParams.get("search");
+  const API_KEY = "cc86a7d2";
 
-//   removeFavorite(movie) {
-//     this.props.moviesFavourites.filter((m) => {
-//       return m.id !== movie.imdbID;
-//     });
-//   }
-//   render() {
-//     const { title } = this.state;
-//     return (
-//       <div>
-//         <h2>Find a Movie</h2>
-//         <form className="form-container" onSubmit={(e) => this.handleSubmit(e)}>
-//           <div>
-//             <label className="label" htmlFor="title">
-//               Movie Title:{" "}
-//             </label>
-//             <input
-//               type="text"
-//               id="title"
-//               autoComplete="off"
-//               value={title}
-//               onChange={(e) => this.handleChange(e)}
-//             />
-//           </div>
-//           <button type="submit">FIND</button>
-//         </form>
-//         <ul>
-//           {this.props.moviesLoaded?.map((movie) => (
-//             <li key={movie.imdbID}>
-//               <Link to={`/movie/${movie.imdbID}`}>{movie.Title}</Link>
-//               <button
-//                 style={{ margin: "0.5rem" }}
-//                 onClick={() => {
-//                   !this.props.moviesFavourites.find(
-//                     (m) => m.id === movie.imdbID
-//                   )
-//                     ? this.addFavorite(movie)
-//                     : this.removeFavorite(movie);
-//                 }}
-//               >
-//                 {this.props.moviesFavourites.find((m) => m.id === movie.imdbID)
-//                   ? "Faved"
-//                   : "Fav"}
-//               </button>
-//             </li>
-//           ))}
-//         </ul>
-//       </div>
-//     );
-//   }
-// }
+  async function getMovies(titulo, page = 1) {
+    if (titulo.length >= 3)
+      return fetch(
+        `http://www.omdbapi.com/?apikey=${API_KEY}&s=${titulo}&type=movie&page=${page}`
+      ).then((response) =>
+        response.json().then((json) => {
+          return json.Search;
+        })
+      );
+  }
 
-export function Buscador({ getMovies, addMovieFavorite, RemoveMovieFavorite }) {
-  let [state, setState] = useState({ title: "" });
+  const { data: movies, isLoading } = useQuery(
+    ["movies", search, page],
+    () => search && getMovies(search, page)
+  );
 
-  const { title } = state.title;
-  const moviesLoaded = useSelector((state) => state.moviesLoaded);
   const moviesFavourites = useSelector((state) => state.moviesFavourites);
 
   function handleChange(event) {
-    setState({ ...state, title: event.target.value });
+    event.preventDefault();
+    console.log(searchParams);
+    event.target.value
+      ? setSearchParams(
+          createSearchParams({ search: event.target.value, page: page })
+        )
+      : removeQueryParams();
   }
   function handleSubmit(event) {
     event.preventDefault();
-    getMovies(state.title);
   }
+
+  console.log(page);
+  function handleNextPage() {
+    if (movies) {
+      setPage(page + 1);
+      setSearchParams(createSearchParams({ search: search, page: page + 1 }));
+    }
+    return;
+  }
+
+  function handlePrevPage() {
+    if (page > 1) {
+      setPage(page - 1);
+      setSearchParams(createSearchParams({ search: search, page: page - 1 }));
+    }
+    return;
+  }
+
+  const removeQueryParams = () => {
+    const param = searchParams.get("search");
+
+    if (param) {
+      // 👇️ delete each query param
+      searchParams.delete("page");
+      searchParams.delete("search");
+
+      // 👇️ update state after
+      setSearchParams(searchParams);
+    }
+  };
 
   return (
     <div>
@@ -113,14 +84,16 @@ export function Buscador({ getMovies, addMovieFavorite, RemoveMovieFavorite }) {
             type="text"
             id="title"
             autoComplete="off"
-            value={title}
+            value={search ?? ""}
             onChange={(e) => handleChange(e)}
           />
         </div>
-        <button type="submit">FIND</button>
+        <button onClick={removeQueryParams}>CLEAR</button>
       </form>
+      <button onClick={handlePrevPage}>Previous Page</button>
+      <button onClick={handleNextPage}>Next Page</button>
       <ul>
-        {moviesLoaded?.map((movie) => (
+        {movies?.map((movie) => (
           <li key={movie.imdbID}>
             <Link className="link" to={`/movie/${movie.imdbID}`}>
               {movie.Title}
@@ -145,21 +118,7 @@ export function Buscador({ getMovies, addMovieFavorite, RemoveMovieFavorite }) {
   );
 }
 
-// function mapStateToProps(state) {
-//   return {
-//     movies: state.moviesLoaded,
-//   };
-// }
-
-// function mapDispatchToProps(dispatch) {
-//   return {
-//     addMovieFavorite: (movie) => dispatch(addMovieFavorite(movie)),
-//     getMovies: (title) => dispatch(getMovies(title)),
-//   };
-// }
-
 export default connect(null, {
-  getMovies,
   addMovieFavorite,
   RemoveMovieFavorite,
 })(Buscador);

@@ -1,75 +1,44 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import {
-  getMovieDetail,
-  addMovieFavorite,
-  RemoveMovieFavorite,
-  GET_MOVIE_DETAIL,
-} from "../../actions/index";
-
+import { addMovieFavorite, RemoveMovieFavorite } from "../../actions/index";
+import { useQuery } from "react-query";
 import "./Movie.css";
-
-// class Movie extends React.Component {
-//   componentDidMount() {
-//     this.props.getMovieDetail(this.props.match.params.id);
-//   }
-
-//   render() {
-//     return (
-//       <div className="movie-detail">
-//         Detalle de la pelicula
-//         <div>
-//           <img
-//             src={this.props.movieDetail.Poster}
-//             alt={this.props.movieDetail.Title}
-//           />
-//         </div>
-//         <ul>
-//           <li>
-//             {this.props.movieDetail.Title}{" "}
-//             <span>({this.props.movieDetail.Year})</span>
-//           </li>
-
-//           <li>Runtime: {this.props.movieDetail.Runtime}</li>
-//           <li>Genre: {this.props.movieDetail.Genre}</li>
-//           <li>Actors: {this.props.movieDetail.Actors}</li>
-//           <li>Metascore: {this.props.movieDetail.Metascore}</li>
-//           <li> IMDB rating: {this.props.movieDetail.imdbRating}</li>
-//         </ul>
-//       </div>
-//     );
-//   }
-// }
-
-// export default connect(
-//   (state) => ({
-//     movieDetail: state.movieDetail,
-//   }),
-//   { getMovieDetail }
-// )(Movie);
+import { Spinner } from "../Spinner/Spinner";
+import axios from "axios";
 
 export default function Movie() {
   const { id } = useParams();
+
+  async function getMovieDetail(payload) {
+    try {
+      const response = await axios.get(
+        `http://www.omdbapi.com/?apikey=cc86a7d2&i=${payload}&plot=full`
+      );
+      return (payload = response.data);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  const { data: movieDetail, isLoading } = useQuery(["movieDetails", id], () =>
+    getMovieDetail(id)
+  );
+
   const dispatch = useDispatch();
 
-  const movieDetail = useSelector((state) => state.movieDetail);
-  const loading = useSelector((state) => state.loading);
   const moviesFavourites = useSelector((state) => state.moviesFavourites);
 
-  React.useEffect(() => {
-    dispatch(getMovieDetail(id));
-    return () => {
-      dispatch({ type: GET_MOVIE_DETAIL, payload: undefined });
-    };
-  }, [dispatch, id]); // the returned dispatch will set the movieDetail state to undefined after the component is unmounted so there's nothing on the body before the loading process starts
+  // React.useEffect(() => {
+  //   dispatch(getMovieDetail(id));
+  //   return () => {
+  //     dispatch({ type: GET_MOVIE_DETAIL, payload: undefined });
+  //   };
+  // }, [dispatch, id]); // the returned dispatch will set the movieDetail state to undefined after the component is unmounted so there's nothing on the body before the loading process starts
 
-  if (loading || !movieDetail) {
-    return (
-      <div>
-        <h1 style={{ textAlign: "center" }}>Loading...</h1>
-      </div>
-    );
+  if (isLoading || !movieDetail) {
+    console.log(movieDetail);
+    return <Spinner />;
   }
   return (
     <div className="movie-detail">
