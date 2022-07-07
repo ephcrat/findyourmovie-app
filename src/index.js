@@ -6,17 +6,15 @@ import * as serviceWorker from "./serviceWorker";
 import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
 import store from "./store";
-import { QueryClient, QueryClientProvider } from "react-query";
-import { ReactQueryDevtools } from "react-query/devtools";
+//import { Provider } from "react-redux";
+//import store from "./store/index";
 
-const queryClient = new QueryClient();
 ReactDOM.render(
-  <Provider store={store}>
-    <QueryClientProvider client={queryClient}>
+  <BrowserRouter>
+    <Provider store={store}>
       <App />
-      <ReactQueryDevtools />
-    </QueryClientProvider>
-  </Provider>,
+    </Provider>
+  </BrowserRouter>,
   document.getElementById("root")
 );
 
